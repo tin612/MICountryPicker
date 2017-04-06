@@ -54,7 +54,7 @@ open class MICountryPicker: UITableViewController {
             let displayName = (locale as NSLocale).displayName(forKey: NSLocale.Key.countryCode, value: countryCode)
             let countryData = CallingCodes.filter { $0["code"] == countryCode }
             let country: MICountry
-
+            
             if countryData.count > 0, let dialCode = countryData[0]["dial_code"] {
                 country = MICountry(name: displayName!, code: countryCode, dialCode: dialCode)
             } else {
@@ -106,20 +106,24 @@ open class MICountryPicker: UITableViewController {
     open var didSelectCountryClosure: ((String, String) -> ())?
     open var didSelectCountryWithCallingCodeClosure: ((String, String, String) -> ())?
     open var showCallingCodes = false
-
+    
     convenience public init(completionHandler: @escaping ((String, String) -> ())) {
         self.init()
         self.didSelectCountryClosure = completionHandler
     }
-    
     override open func viewDidLoad() {
         super.viewDidLoad()
         
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "UITableViewCell")
         createSearchBar()
         tableView.reloadData()
-        
         definesPresentationContext = true
+    }
+    func backButtonPressed(sender:UIButton) {
+        
+        
+        _ = navigationController?.popViewController(animated: true)
+        self.dismiss(animated: true, completion: nil)
     }
     
     // MARK: Methods
@@ -186,13 +190,13 @@ extension MICountryPicker {
             country = sections[(indexPath as NSIndexPath).section].countries[(indexPath as NSIndexPath).row]
             
         }
-
+        
         if showCallingCodes {
             cell.textLabel?.text = country.name + " (" + country.dialCode! + ")"
         } else {
             cell.textLabel?.text = country.name
         }
-
+        
         let bundle = "assets.bundle/"
         cell.imageView!.image = UIImage(named: bundle + country.code.lowercased() + ".png", in: Bundle(for: MICountryPicker.self), compatibleWith: nil)
         return cell
@@ -200,6 +204,13 @@ extension MICountryPicker {
     
     override open func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         if !sections[section].countries.isEmpty {
+            if searchController.searchBar.text!.characters.count > 0 {
+                if let name = filteredList.first?.name {
+                    let index = name.index(name.startIndex, offsetBy: 0)
+                    return String(describing: name[index])
+                }
+                return ""
+            }
             return self.collation.sectionTitles[section] as String
         }
         return ""
@@ -210,8 +221,8 @@ extension MICountryPicker {
     }
     
     override open func tableView(_ tableView: UITableView,
-        sectionForSectionIndexTitle title: String,
-        at index: Int)
+                                 sectionForSectionIndexTitle title: String,
+                                 at index: Int)
         -> Int {
             return collation.section(forSectionIndexTitle: index)
     }
