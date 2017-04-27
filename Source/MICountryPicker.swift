@@ -174,6 +174,11 @@ open class MICountryPicker: UITableViewController {
         
         return filteredList
     }
+    
+    open override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        self.navigationController?.setNavigationBarHidden(true, animated: false)
+    }
 }
 
 // MARK: - Table view data source
